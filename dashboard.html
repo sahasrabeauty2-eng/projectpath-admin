@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Project Path Admin Dashboard">
+    <title>Dashboard - Project Path Admin</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/images/favicon.png">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="assets/css/admin-style.css">
+</head>
+
+<body>
+    <!-- Authentication Protection (Must be first) -->
+    <script src="assets/js/app.js"></script>
+    <script>
+        protectAdminPage();
+    </script>
+
+    <div class="dashboard">
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">📐 Project Path</div>
+            </div>
+
+            <nav>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="dashboard.html" class="nav-link active">
+                            <span class="nav-icon">📊</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="projects.html" class="nav-link">
+                            <span class="nav-icon">🎨</span>
+                            <span>Projects</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="community.html" class="nav-link">
+                            <span class="nav-icon">💬</span>
+                            <span>Community</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="analytics.html" class="nav-link">
+                            <span class="nav-icon">📈</span>
+                            <span>Analytics</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="settings.html" class="nav-link">
+                            <span class="nav-icon">⚙️</span>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <button class="btn btn-secondary logout-button" style="width: 100%;">
+                    <span>🚪</span>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Page Header -->
+            <header class="page-header">
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-subtitle">Welcome to Project Path Admin Panel</p>
+            </header>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon primary">🎨</div>
+                    <div class="stat-value" id="totalProjects">0</div>
+                    <div class="stat-label">Total Projects</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon success">👥</div>
+                    <div class="stat-value" id="totalUsers">0</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon warning">💬</div>
+                    <div class="stat-value" id="totalMessages">0</div>
+                    <div class="stat-label">Community Messages</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Quick Actions</h2>
+                </div>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="projects.html" class="btn btn-primary">➕ Add New Project</a>
+                    <a href="community.html" class="btn btn-secondary">💬 View Community</a>
+                    <a href="analytics.html" class="btn btn-secondary">📈 View Analytics</a>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Activity</h2>
+                </div>
+                <div id="recentActivity">
+                    <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">
+                        No recent activity to display
+                    </p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
+    <!-- Firebase Config -->
+    <script src="firebase-config.js"></script>
+
+    <!-- Authentication -->
+
+    <!-- Dashboard Script -->
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobileMenuToggle').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('open');
+        });
+
+        // Load dashboard stats
+        async function loadDashboardStats() {
+            try {
+                // Get total projects
+                const projectsSnapshot = await database.ref('projects').once('value');
+                const projects = projectsSnapshot.val();
+                document.getElementById('totalProjects').textContent = projects ? Object.keys(projects).length : 0;
+
+                // Get total users
+                const usersSnapshot = await database.ref('users').once('value');
+                const users = usersSnapshot.val();
+                document.getElementById('totalUsers').textContent = users ? Object.keys(users).length : 0;
+
+                // Get total community messages
+                const messagesSnapshot = await database.ref('community').once('value');
+                const messages = messagesSnapshot.val();
+                document.getElementById('totalMessages').textContent = messages ? Object.keys(messages).length : 0;
+            } catch (error) {
+                console.error('Error loading dashboard stats:', error);
+            }
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboardStats();
+        });
+    </script>
+</body>
+
+</html>

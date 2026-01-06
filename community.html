@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community - Project Path Admin</title>
+
+    <link rel="icon" type="image/png" href="assets/images/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/admin-style.css">
+</head>
+
+<body>
+    <!-- Authentication Protection (Must be first) -->
+    <script src="assets/js/app.js"></script>
+    <script>
+        protectAdminPage();
+    </script>
+
+    <div class="dashboard">
+        <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">📐 Project Path</div>
+            </div>
+
+            <nav>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="dashboard.html" class="nav-link">
+                            <span class="nav-icon">📊</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="projects.html" class="nav-link">
+                            <span class="nav-icon">🎨</span>
+                            <span>Projects</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="community.html" class="nav-link active">
+                            <span class="nav-icon">💬</span>
+                            <span>Community</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="analytics.html" class="nav-link">
+                            <span class="nav-icon">📈</span>
+                            <span>Analytics</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="settings.html" class="nav-link">
+                            <span class="nav-icon">⚙️</span>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <button class="btn btn-secondary logout-button" style="width: 100%;">
+                    <span>🚪</span>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="page-header">
+                <h1 class="page-title">Community Moderation</h1>
+                <p class="page-subtitle">Monitor and manage community messages</p>
+            </header>
+
+            <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                <div class="stat-card">
+                    <div class="stat-icon primary">💬</div>
+                    <div class="stat-value" id="totalMessages">0</div>
+                    <div class="stat-label">Total Messages</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon success">✅</div>
+                    <div class="stat-value" id="activeMessages">0</div>
+                    <div class="stat-label">Active Messages</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">All Community Messages</h2>
+                </div>
+
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Message</th>
+                                <th>Time</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="messagesTableBody">
+                            <tr>
+                                <td colspan="4"
+                                    style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                                    Loading messages...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
+    <script src="firebase-config.js"></script>
+
+    <script>
+        document.getElementById('mobileMenuToggle').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('open');
+        });
+
+        // Load community messages
+        function loadMessages() {
+            const tbody = document.getElementById('messagesTableBody');
+
+            database.ref('community').on('value', (snapshot) => {
+                const messages = snapshot.val();
+
+                if (!messages) {
+                    tbody.innerHTML = `
+            <tr>
+              <td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                No messages yet
+              </td>
+            </tr>
+          `;
+                    document.getElementById('totalMessages').textContent = '0';
+                    document.getElementById('activeMessages').textContent = '0';
+                    return;
+                }
+
+                // Convert to array and sort by timestamp (newest first)
+                const messagesArray = Object.entries(messages).map(([id, data]) => ({
+                    id,
+                    ...data
+                })).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+                // Update stats
+                document.getElementById('totalMessages').textContent = messagesArray.length;
+                document.getElementById('activeMessages').textContent = messagesArray.filter(m => !m.deleted).length;
+
+                // Render messages
+                tbody.innerHTML = messagesArray.map(msg => {
+                    const date = new Date(msg.timestamp);
+                    const timeStr = date.toLocaleString();
+
+                    return `
+            <tr style="${msg.deleted ? 'opacity: 0.5; text-decoration: line-through;' : ''}">
+              <td><strong>${msg.username || 'Anonymous'}</strong></td>
+              <td>${msg.message}</td>
+              <td style="white-space: nowrap;">${timeStr}</td>
+              <td>
+                ${!msg.deleted ? `
+                  <button class="btn btn-icon btn-danger" onclick="deleteMessage('${msg.id}', '${msg.username}')" title="Delete">
+                    🗑️
+                  </button>
+                ` : '<span style="color: var(--danger-color);">Deleted</span>'}
+              </td>
+            </tr>
+          `;
+                }).join('');
+            });
+        }
+
+        // Delete message
+        async function deleteMessage(messageId, username) {
+            if (!confirm(`Delete message from ${username}?\n\nThis action cannot be undone.`)) {
+                return;
+            }
+
+            try {
+                await database.ref(`community/${messageId}`).remove();
+                alert('Message deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting message:', error);
+                alert('Error deleting message: ' + error.message);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadMessages();
+        });
+    </script>
+</body>
+
+</html>

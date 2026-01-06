@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects - Project Path Admin</title>
+
+    <link rel="icon" type="image/png" href="assets/images/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/admin-style.css">
+</head>
+
+<body>
+    <!-- Authentication Protection (Must be first) -->
+    <script src="assets/js/app.js"></script>
+    <script>
+        protectAdminPage();
+    </script>
+
+    <div class="dashboard">
+        <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">📐 Project Path</div>
+            </div>
+
+            <nav>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="dashboard.html" class="nav-link">
+                            <span class="nav-icon">📊</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="projects.html" class="nav-link active">
+                            <span class="nav-icon">🎨</span>
+                            <span>Projects</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="community.html" class="nav-link">
+                            <span class="nav-icon">💬</span>
+                            <span>Community</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="analytics.html" class="nav-link">
+                            <span class="nav-icon">📈</span>
+                            <span>Analytics</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="settings.html" class="nav-link">
+                            <span class="nav-icon">⚙️</span>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <button class="btn btn-secondary logout-button" style="width: 100%;">
+                    <span>🚪</span>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="page-header">
+                <h1 class="page-title">Project Management</h1>
+                <p class="page-subtitle">Create, edit, and manage all projects</p>
+            </header>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Add New Project</h2>
+                </div>
+
+                <form id="projectForm">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+                        <div class="form-group">
+                            <label for="projectTitle" class="form-label">Project Title *</label>
+                            <input type="text" id="projectTitle" class="form-input" placeholder="Enter project title"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="projectDescription" class="form-label">Description *</label>
+                        <textarea id="projectDescription" class="form-input" rows="4"
+                            placeholder="Enter project description" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="projectYoutubeUrl" class="form-label">YouTube URL *</label>
+                        <input type="url" id="projectYoutubeUrl" class="form-input"
+                            placeholder="https://youtube.com/watch?v=..." required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="projectThumbnail" class="form-label">Thumbnail Image *</label>
+                        <input type="file" id="projectThumbnail" class="form-input" accept="image/*" required>
+                        <div id="thumbnailPreview" style="margin-top: 1rem;"></div>
+                    </div>
+
+                    <!-- Optional: Circuit Diagram -->
+                    <div class="form-group">
+                        <button type="button" class="btn btn-secondary" id="toggleCircuitDiagram" style="width: 100%;">
+                            ➕ Add Circuit Diagram (Optional)
+                        </button>
+                    </div>
+
+                    <div id="circuitDiagramSection" style="display: none;">
+                        <div class="form-group">
+                            <label for="circuitDiagram" class="form-label">Circuit Diagram Image</label>
+                            <input type="file" id="circuitDiagram" class="form-input" accept="image/*">
+                            <div id="circuitPreview" style="margin-top: 1rem;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Optional: Product Links -->
+                    <div class="form-group">
+                        <button type="button" class="btn btn-secondary" id="toggleProductLinks" style="width: 100%;">
+                            ➕ Add Product Links (Optional)
+                        </button>
+                    </div>
+
+                    <div id="productLinksSection" style="display: none;">
+                        <div class="card" style="background: var(--dark-surface); padding: 1rem; margin-bottom: 1rem;">
+                            <h3 style="font-size: 1rem; margin-bottom: 1rem;">Product Links</h3>
+                            <div id="productLinksList"></div>
+                            <button type="button" class="btn btn-secondary" id="addProductLink"
+                                style="width: 100%; margin-top: 0.5rem;">
+                                ➕ Add Product Link
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Optional: Additional Links -->
+                    <div class="form-group">
+                        <button type="button" class="btn btn-secondary" id="toggleAdditionalLinks" style="width: 100%;">
+                            ➕ Add Additional Links (Optional)
+                        </button>
+                    </div>
+
+                    <div id="additionalLinksSection" style="display: none;">
+                        <div class="card" style="background: var(--dark-surface); padding: 1rem; margin-bottom: 1rem;">
+                            <h3 style="font-size: 1rem; margin-bottom: 1rem;">Additional Links</h3>
+                            <div id="additionalLinksList"></div>
+                            <button type="button" class="btn btn-secondary" id="addAdditionalLink"
+                                style="width: 100%; margin-top: 0.5rem;">
+                                ➕ Add Additional Link
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem;">
+                        <button type="submit" class="btn btn-primary" id="submitButton">
+                            ➕ Add Project
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="cancelButton" style="display: none;">
+                            ❌ Cancel Edit
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">All Projects</h2>
+                </div>
+
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Thumbnail</th>
+                                <th>Title</th>
+                                <th>Likes</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="projectsTableBody">
+                            <tr>
+                                <td colspan="4"
+                                    style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                                    Loading projects...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
+    <script src="firebase-config.js"></script>
+    <script src="assets/js/admin-projects.js"></script>
+
+    <script>
+        document.getElementById('mobileMenuToggle').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('open');
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - Project Path Admin</title>
+
+    <link rel="icon" type="image/png" href="assets/images/favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/admin-style.css">
+</head>
+
+<body>
+    <!-- Authentication Protection (Must be first) -->
+    <script src="assets/js/app.js"></script>
+    <script>
+        protectAdminPage();
+    </script>
+
+    <div class="dashboard">
+        <button class="mobile-menu-toggle" id="mobileMenuToggle">☰</button>
+
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">📐 Project Path</div>
+            </div>
+
+            <nav>
+                <ul class="nav-menu">
+                    <li class="nav-item">
+                        <a href="dashboard.html" class="nav-link">
+                            <span class="nav-icon">📊</span>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="projects.html" class="nav-link">
+                            <span class="nav-icon">🎨</span>
+                            <span>Projects</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="community.html" class="nav-link">
+                            <span class="nav-icon">💬</span>
+                            <span>Community</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="analytics.html" class="nav-link active">
+                            <span class="nav-icon">📈</span>
+                            <span>Analytics</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="settings.html" class="nav-link">
+                            <span class="nav-icon">⚙️</span>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <button class="btn btn-secondary logout-button" style="width: 100%;">
+                    <span>🚪</span>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="page-header">
+                <h1 class="page-title">Analytics Dashboard</h1>
+                <p class="page-subtitle">Monitor website usage and user activity</p>
+            </header>
+
+            <!-- Key Metrics -->
+            <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                <div class="stat-card">
+                    <div class="stat-icon primary">👥</div>
+                    <div class="stat-value" id="totalUsers">0</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon success">🎨</div>
+                    <div class="stat-value" id="totalProjects">0</div>
+                    <div class="stat-label">Total Projects</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon warning">❤️</div>
+                    <div class="stat-value" id="totalLikes">0</div>
+                    <div class="stat-label">Total Likes</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon primary">💬</div>
+                    <div class="stat-value" id="totalMessages">0</div>
+                    <div class="stat-label">Community Messages</div>
+                </div>
+            </div>
+
+            <!-- Most Liked Projects -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🏆 Most Liked Projects</h2>
+                </div>
+
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Project Title</th>
+                                <th>Likes</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody id="topProjectsTableBody">
+                            <tr>
+                                <td colspan="3"
+                                    style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                                    Loading data...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recent Users -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">🆕 Recent Users</h2>
+                </div>
+
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Joined</th>
+                                <th>Favorites</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentUsersTableBody">
+                            <tr>
+                                <td colspan="4"
+                                    style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                                    Loading data...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
+    <script src="firebase-config.js"></script>
+
+    <script>
+        document.getElementById('mobileMenuToggle').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.toggle('open');
+        });
+
+        // Load analytics data
+        async function loadAnalytics() {
+            try {
+                // Get total users
+                const usersSnapshot = await database.ref('users').once('value');
+                const users = usersSnapshot.val();
+                const usersArray = users ? Object.entries(users).map(([id, data]) => ({ id, ...data })) : [];
+                document.getElementById('totalUsers').textContent = usersArray.length;
+
+                // Get total projects
+                const projectsSnapshot = await database.ref('projects').once('value');
+                const projects = projectsSnapshot.val();
+                const projectsArray = projects ? Object.entries(projects).map(([id, data]) => ({ id, ...data })) : [];
+                document.getElementById('totalProjects').textContent = projectsArray.length;
+
+                // Calculate total likes
+                const totalLikes = projectsArray.reduce((sum, project) => sum + (project.likes || 0), 0);
+                document.getElementById('totalLikes').textContent = totalLikes;
+
+                // Get total messages
+                const messagesSnapshot = await database.ref('community').once('value');
+                const messages = messagesSnapshot.val();
+                document.getElementById('totalMessages').textContent = messages ? Object.keys(messages).length : 0;
+
+                // Load top projects
+                loadTopProjects(projectsArray);
+
+                // Load recent users
+                loadRecentUsers(usersArray);
+
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+            }
+        }
+
+        // Load top projects by likes
+        function loadTopProjects(projects) {
+            const tbody = document.getElementById('topProjectsTableBody');
+
+            if (!projects || projects.length === 0) {
+                tbody.innerHTML = `
+          <tr>
+            <td colspan="3" style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+              No projects available
+            </td>
+          </tr>
+        `;
+                return;
+            }
+
+            // Sort by likes and take top 10
+            const topProjects = projects
+                .sort((a, b) => (b.likes || 0) - (a.likes || 0))
+                .slice(0, 10);
+
+            tbody.innerHTML = topProjects.map(project => {
+                const date = new Date(project.createdAt);
+                return `
+          <tr>
+            <td><strong>${project.title}</strong></td>
+            <td><span style="color: var(--danger-color); font-weight: 600;">❤️ ${project.likes || 0}</span></td>
+            <td>${date.toLocaleDateString()}</td>
+          </tr>
+        `;
+            }).join('');
+        }
+
+        // Load recent users
+        function loadRecentUsers(users) {
+            const tbody = document.getElementById('recentUsersTableBody');
+
+            if (!users || users.length === 0) {
+                tbody.innerHTML = `
+          <tr>
+            <td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+              No users registered yet
+            </td>
+          </tr>
+        `;
+                return;
+            }
+
+            // Sort by creation date and take top 10
+            const recentUsers = users
+                .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+                .slice(0, 10);
+
+            tbody.innerHTML = recentUsers.map(user => {
+                const date = new Date(user.createdAt);
+                const favCount = user.favorites ? Object.keys(user.favorites).length : 0;
+
+                return `
+          <tr>
+            <td><strong>${user.username || 'Anonymous'}</strong></td>
+            <td>${user.email}</td>
+            <td>${date.toLocaleDateString()}</td>
+            <td>${favCount}</td>
+          </tr>
+        `;
+            }).join('');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAnalytics();
+        });
+    </script>
+</body>
+
+</html>
