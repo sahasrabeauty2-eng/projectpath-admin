@@ -29,25 +29,25 @@ function changePassword() {
 
     const saved = localStorage.getItem("adminPassword") || "ProjectPath@2026";
 
-    if (error) error.innerText = "";
+    error.innerText = "";
 
     if (!current || !next || !confirm) {
-        if (error) error.innerText = "All fields are required";
+        error.innerText = "All fields are required";
         return;
     }
 
     if (current !== saved) {
-        if (error) error.innerText = "Current password is incorrect";
+        error.innerText = "Current password is incorrect";
         return;
     }
 
     if (next.length < 6) {
-        if (error) error.innerText = "New password must be at least 6 characters";
+        error.innerText = "New password must be at least 6 characters";
         return;
     }
 
     if (next !== confirm) {
-        if (error) error.innerText = "Passwords do not match";
+        error.innerText = "Passwords do not match";
         return;
     }
 
